@@ -1,0 +1,9 @@
+{
+  "server": "http://127.0.0.1:8000",
+  "username": "edge",
+  "password": "CHANGE_ME",
+  "space_id": 1,
+  "capacity": 120,
+  "stable_frames": 30,
+  "min_interval_sec": 60
+}
