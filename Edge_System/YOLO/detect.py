@@ -105,6 +105,7 @@ def run(
     blur=True,  # SpaceCheck: 업로드 전 사람 영역 블러
     stable_frames=None,  # SpaceCheck: config 값 덮어쓰기
     min_interval=None,  # SpaceCheck: config 값 덮어쓰기 (초)
+    mode=None,  # SpaceCheck: 'count'(기본) / 'baseline'(강의자료 원본 규칙)
 ):
     """Runs YOLOv5 detection inference on various sources like images, videos, directories, streams, etc.
 
@@ -201,6 +202,8 @@ def run(
             cfg["stable_frames"] = stable_frames
         if min_interval is not None:
             cfg["min_interval_sec"] = min_interval
+        if mode is not None:
+            cfg["mode"] = mode
         cd = ChangeDetection(cfg)
         if upload:
             cd.get_token()
@@ -445,6 +448,9 @@ def parse_opt():
     parser.add_argument("--no-blur", dest="blur", action="store_false", help="업로드 전 사람 블러 끄기")
     parser.add_argument("--stable-frames", type=int, default=None, help="변화 확정에 필요한 연속 프레임 수")
     parser.add_argument("--min-interval", type=float, default=None, help="최소 업로드 간격(초)")
+    parser.add_argument(
+        "--mode", choices=["count", "baseline"], default=None, help="count=사람 수 변화(기본), baseline=강의자료 원본(없음→있음)"
+    )
     opt = parser.parse_args()
     if opt.classes is None:
         opt.classes = [0]  # SpaceCheck: person 클래스만 검출 (1-2 대체)

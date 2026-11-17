@@ -7,6 +7,7 @@ ChangeDetection
   - 서버 인증: /api-token-auth/ 로 token 을 받아 `Authorization: Token <token>`
 """
 import json
+import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,8 +16,20 @@ import cv2
 import requests
 
 
+# 환경변수가 있으면 config.json 값을 덮어쓴다 (비밀번호를 파일에 두지 않기 위함)
+ENV_OVERRIDES = {
+    'SPACECHECK_SERVER': 'server',
+    'SPACECHECK_USERNAME': 'username',
+    'SPACECHECK_PASSWORD': 'password',
+}
+
+
 def load_config(path='config.json'):
-    return json.loads(Path(path).read_text(encoding='utf-8'))
+    cfg = json.loads(Path(path).read_text(encoding='utf-8'))
+    for env, key in ENV_OVERRIDES.items():
+        if os.environ.get(env):
+            cfg[key] = os.environ[env]
+    return cfg
 
 
 def crowd_level(count, capacity):
@@ -48,6 +61,12 @@ class ChangeDetection:
         self.capacity = cfg['capacity']
         self.stable_frames = cfg.get('stable_frames', 30)
         self.min_interval = cfg.get('min_interval_sec', 60)
+        # 업로드 제목 = "<title_prefix> | <space_name> | N명" (보고서 증거용 학번 뒤 4자리를 prefix 로 설정)
+        self.title_prefix = cfg.get('title_prefix', '')
+        self.space_name = cfg.get('space_name', f"space{cfg['space_id']}")
+        # mode: 'count'(기본, 사람 수 변화+안정 프레임+최소 간격) / 'baseline'(강의자료 원본: 없음→있음이면 업로드)
+        self.mode = cfg.get('mode', 'count')
+        self._prev_count = 0
         self.token = None
         self.state = None            # 서버에 마지막으로 보고한(현재 상태) 인원 수
         self._candidate = None
@@ -63,6 +82,10 @@ class ChangeDetection:
         self.token = r.json()['token']
         return self.token
 
+    def make_title(self, count):
+        parts = [self.title_prefix, self.space_name, f'{count}명']
+        return ' | '.join(p for p in parts if p)
+
     # ---- 업로드 (1-4) ----
     def upload(self, frame, count, title=None, text=''):
         if self.token is None:
@@ -72,7 +95,7 @@ class ChangeDetection:
             raise ValueError('이미지 인코딩 실패')
         now = datetime.now(timezone.utc).isoformat()
         data = {
-            'title': title or f'space{self.space_id} {count}명',
+            'title': title or self.make_title(count),
             'text': text,
             'published_date': now,
             'space': self.space_id,
@@ -89,6 +112,8 @@ class ChangeDetection:
     def update(self, count, now=None):
         """프레임마다 호출. 업로드해야 하면 True."""
         now = time.time() if now is None else now
+        if self.mode == 'baseline':
+            return self._update_baseline(count)
         if count == self.state:
             self._candidate, self._streak = None, 0
             return False
@@ -101,6 +126,13 @@ class ChangeDetection:
         if now - self._last_upload < self.min_interval:
             return False
         return True
+
+    def _update_baseline(self, count):
+        """강의자료(ch08) 원본 규칙: 직전 프레임에 0명이었다가 지금 1명 이상이면 즉시 업로드.
+        안정 프레임·최소 간격 없음 -> 프레임 흔들림에 그대로 반응한다 (비교 측정용)."""
+        trigger = self._prev_count == 0 and count > 0
+        self._prev_count = count
+        return trigger
 
     def mark_uploaded(self, count, now=None):
         self.state = count

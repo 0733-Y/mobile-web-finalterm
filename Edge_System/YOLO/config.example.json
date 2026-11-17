@@ -5,5 +5,8 @@
   "space_id": 1,
   "capacity": 120,
   "stable_frames": 30,
-  "min_interval_sec": 60
+  "min_interval_sec": 60,
+  "title_prefix": "5960",
+  "space_name": "중앙도서관 제1열람실",
+  "mode": "count"
 }
