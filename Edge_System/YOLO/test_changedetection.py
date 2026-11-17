@@ -1,6 +1,9 @@
 """ChangeDetection 규칙 단위 테스트 (카메라/서버 없이 인원 수 시퀀스로 확인).
 실행: python -m unittest test_changedetection -v"""
 import unittest
+from unittest import mock
+
+import numpy as np
 
 from changedetection import ChangeDetection, crowd_level
 
@@ -37,6 +40,17 @@ class Tests(unittest.TestCase):
         got = [cd.update_baseline(s) for s in seq]
         # 0->1 이 된 클래스만 즉시 보고, 깜빡임(person 사라졌다 다시 나타남)에도 매번 반응
         self.assertEqual(got, [[], ['person'], [], [], ['person', 'chair'], [], ['cup']])
+
+    def test_baseline_upload_fields(self):
+        cd = ChangeDetection({**CFG, 'mode': 'baseline'})
+        cd.token = 't'
+        with mock.patch('changedetection.requests.post') as post:
+            post.return_value.json.return_value = {'id': 1}
+            cd.upload_baseline(np.zeros((480, 640, 3), np.uint8), ['person', 'chair', 'cup'])
+        data = post.call_args.kwargs['data']
+        self.assertEqual(data['title'], '5960 | cup')            # 마지막 새 클래스가 title (접두어 5960)
+        self.assertEqual(data['text'], 'person, chair, cup, ')   # 끝 쉼표 유지
+        self.assertNotIn('person_count', data)
 
     def test_title_has_prefix(self):
         self.assertEqual(ChangeDetection(CFG).make_title(3), '5960 | A | 3명')

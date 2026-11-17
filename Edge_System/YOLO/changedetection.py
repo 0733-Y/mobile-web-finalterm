@@ -135,7 +135,8 @@ class ChangeDetection:
         return new
 
     def upload_baseline(self, frame, new_names):
-        """원본 업로드: 제목=클래스 이름, 본문=새로 나타난 클래스 이름(쉼표 연결), 이미지 320x240.
+        """ch08 원본 업로드: 새로 0->1 이 된 클래스마다 title 을 덮어써서 마지막 클래스 이름이 제목이 되고,
+        본문은 각 클래스 이름 뒤에 ", " 를 붙여 이어 쓴다(끝의 쉼표 유지). 이미지 320x240.
         (space/person_count/level/블러 없음 — 강의자료 필드만 전송. 제목 앞에는 증거용 접두어만 붙인다)"""
         if self.token is None:
             self.get_token()
@@ -143,8 +144,12 @@ class ChangeDetection:
         ok, buf = cv2.imencode('.jpg', small)
         if not ok:
             raise ValueError('이미지 인코딩 실패')
-        title = ' | '.join(p for p in (self.title_prefix, new_names[0]) if p)
-        data = {'title': title, 'text': ', '.join(new_names),
+        title, text = '', ''
+        for name in new_names:
+            title = name
+            text += name + ', '
+        title = ' | '.join(p for p in (self.title_prefix, title) if p)
+        data = {'title': title, 'text': text,
                 'published_date': datetime.now(timezone.utc).isoformat()}
         r = requests.post(f'{self.server}/api_root/Post/', data=data,
                           files={'image': ('snapshot.jpg', buf.tobytes(), 'image/jpeg')},
