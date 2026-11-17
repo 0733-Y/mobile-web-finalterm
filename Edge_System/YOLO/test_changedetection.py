@@ -10,7 +10,7 @@ CFG = {'server': 'http://x', 'username': 'u', 'password': 'p', 'space_id': 1,
 
 
 def run(mode, counts, fps=30):
-    cd = ChangeDetection({**CFG, 'mode': mode})
+    cd = ChangeDetection({**CFG, 'mode': mode})  # mode 는 count 만 사용
     uploads = []
     for f, c in enumerate(counts):
         now = f / fps
@@ -31,10 +31,12 @@ class Tests(unittest.TestCase):
         seq = [0] * 10 + [2] * 10 + [4] * 10      # 1초 이내에 두 번 바뀜 -> 최소 간격 60초로 두 번째는 보류
         self.assertEqual([c for _, c in run('count', seq)], [0])
 
-    def test_baseline_reacts_to_flicker(self):
-        # 없음->있음 전환마다 즉시 업로드 (깜빡임에 취약)
-        seq = [0, 1, 0, 1, 0, 1, 1, 1, 0, 2]
-        self.assertEqual(len(run('baseline', seq)), 4)
+    def test_baseline_any_class_zero_to_one(self):
+        cd = ChangeDetection({**CFG, 'mode': 'baseline'})
+        seq = [[], ['person'], ['person'], [], ['person', 'chair'], ['chair'], ['chair', 'cup']]
+        got = [cd.update_baseline(s) for s in seq]
+        # 0->1 이 된 클래스만 즉시 보고, 깜빡임(person 사라졌다 다시 나타남)에도 매번 반응
+        self.assertEqual(got, [[], ['person'], [], [], ['person', 'chair'], [], ['cup']])
 
     def test_title_has_prefix(self):
         self.assertEqual(ChangeDetection(CFG).make_title(3), '5960 | A | 3명')

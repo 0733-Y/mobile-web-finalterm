@@ -66,7 +66,7 @@ class ChangeDetection:
         self.space_name = cfg.get('space_name', f"space{cfg['space_id']}")
         # mode: 'count'(기본, 사람 수 변화+안정 프레임+최소 간격) / 'baseline'(강의자료 원본: 없음→있음이면 업로드)
         self.mode = cfg.get('mode', 'count')
-        self._prev_count = 0
+        self._result_prev = {}       # baseline: 클래스 이름 -> 직전 프레임 존재 여부(0/1)
         self.token = None
         self.state = None            # 서버에 마지막으로 보고한(현재 상태) 인원 수
         self._candidate = None
@@ -112,8 +112,6 @@ class ChangeDetection:
     def update(self, count, now=None):
         """프레임마다 호출. 업로드해야 하면 True."""
         now = time.time() if now is None else now
-        if self.mode == 'baseline':
-            return self._update_baseline(count)
         if count == self.state:
             self._candidate, self._streak = None, 0
             return False
@@ -127,12 +125,32 @@ class ChangeDetection:
             return False
         return True
 
-    def _update_baseline(self, count):
-        """강의자료(ch08) 원본 규칙: 직전 프레임에 0명이었다가 지금 1명 이상이면 즉시 업로드.
-        안정 프레임·최소 간격 없음 -> 프레임 흔들림에 그대로 반응한다 (비교 측정용)."""
-        trigger = self._prev_count == 0 and count > 0
-        self._prev_count = count
-        return trigger
+    # ---- 강의자료(ch08) 원본 규칙 (비교 측정용, --mode baseline) ----
+    def update_baseline(self, present_names):
+        """present_names: 현재 프레임에서 검출된 클래스 이름들(80개 COCO 전체 대상).
+        클래스마다 result_prev 를 두고, 어느 한 클래스라도 0 -> 1 이 되면 즉시 업로드 대상.
+        안정 프레임·최소 간격·사람 수 개념 없음. 새로 나타난 클래스 이름 리스트를 반환."""
+        new = [n for n in present_names if not self._result_prev.get(n)]
+        self._result_prev = {n: 1 for n in present_names}
+        return new
+
+    def upload_baseline(self, frame, new_names):
+        """원본 업로드: 제목=클래스 이름, 본문=새로 나타난 클래스 이름(쉼표 연결), 이미지 320x240.
+        (space/person_count/level/블러 없음 — 강의자료 필드만 전송. 제목 앞에는 증거용 접두어만 붙인다)"""
+        if self.token is None:
+            self.get_token()
+        small = cv2.resize(frame, (320, 240))
+        ok, buf = cv2.imencode('.jpg', small)
+        if not ok:
+            raise ValueError('이미지 인코딩 실패')
+        title = ' | '.join(p for p in (self.title_prefix, new_names[0]) if p)
+        data = {'title': title, 'text': ', '.join(new_names),
+                'published_date': datetime.now(timezone.utc).isoformat()}
+        r = requests.post(f'{self.server}/api_root/Post/', data=data,
+                          files={'image': ('snapshot.jpg', buf.tobytes(), 'image/jpeg')},
+                          headers={'Authorization': f'Token {self.token}'}, timeout=30)
+        r.raise_for_status()
+        return r.json()
 
     def mark_uploaded(self, count, now=None):
         self.state = count

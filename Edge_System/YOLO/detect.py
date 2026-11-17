@@ -205,6 +205,8 @@ def run(
         if mode is not None:
             cfg["mode"] = mode
         cd = ChangeDetection(cfg)
+        if cd.mode == "baseline" and classes == [0]:
+            classes = None  # baseline(강의자료 원본)은 80클래스 전체 검출
         if upload:
             cd.get_token()
 
@@ -304,8 +306,18 @@ def run(
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / "crops" / names[c] / f"{p.stem}.jpg", BGR=True)
 
-            # SpaceCheck: 사람 수 -> 변화 판정 -> (블러 후) 업로드
-            if cd:
+            # SpaceCheck: 변화 판정 -> (블러 후) 업로드
+            if cd and cd.mode == "baseline":
+                # 강의자료 원본: 80개 클래스 각각 0->1 이면 즉시 업로드 (간격·안정 프레임 없음, 320x240)
+                present = [names[int(c)] for c in det[:, 5].unique()] if len(det) else []
+                new = cd.update_baseline(present)
+                if new:
+                    if upload:
+                        res = cd.upload_baseline(raw0, new)
+                        LOGGER.info(f"[UPLOAD-BASELINE] new={','.join(new)} -> post id={res.get('id')}")
+                    else:
+                        LOGGER.info(f"[CHANGE-BASELINE] new={','.join(new)} (dry-run)")
+            elif cd:
                 count = len(det)  # classes=[0](person) 만 검출되므로 검출 수 = 사람 수
                 if webcam or not vid_cap:
                     now = None  # 실시간: 시스템 시계
@@ -452,8 +464,8 @@ def parse_opt():
         "--mode", choices=["count", "baseline"], default=None, help="count=사람 수 변화(기본), baseline=강의자료 원본(없음→있음)"
     )
     opt = parser.parse_args()
-    if opt.classes is None:
-        opt.classes = [0]  # SpaceCheck: person 클래스만 검출 (1-2 대체)
+    if opt.classes is None and opt.mode != "baseline":
+        opt.classes = [0]  # SpaceCheck: person 클래스만 검출 (1-2 대체). baseline 은 80클래스 전체
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
     print_args(vars(opt))
     return opt
