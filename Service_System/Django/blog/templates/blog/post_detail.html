@@ -1,0 +1,7 @@
+{% extends 'blog/base.html' %}
+{% block content %}
+<h2>{{ post.title }}</h2>
+<p>{{ post.space|default:"-" }} · {{ post.person_count }}명 · <span class="lv {{ post.level }}">{{ post.level }}</span> · {{ post.published_date }}</p>
+{% if post.image %}<img src="{{ post.image.url }}" alt="">{% endif %}
+<p>{{ post.text|linebreaks }}</p>
+{% endblock %}

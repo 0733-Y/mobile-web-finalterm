@@ -1,0 +1,2 @@
+- GitHub: https://github.com/0733-Y/mobile-web-finalterm
+- PythonAnywhere URL: (배포 후 기재)

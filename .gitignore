@@ -1,0 +1,20 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+db.sqlite3
+Service_System/Django/media/
+Service_System/Django/static/
+local_settings.json
+config.json
+*.pt
+*.mp4
+# Android
+build/
+.gradle/
+local.properties
+.idea/
+*.iml
+seed_credentials.json
+CLAUDE.md
+*.pptx

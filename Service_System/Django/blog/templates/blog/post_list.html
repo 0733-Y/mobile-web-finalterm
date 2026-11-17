@@ -1,0 +1,8 @@
+{% extends 'blog/base.html' %}
+{% block content %}
+{% for post in posts %}
+<div><h2><a href="{% url 'post_detail' pk=post.pk %}">{{ post.title }}</a></h2>
+<p>{{ post.space|default:"-" }} · {{ post.person_count }}명 · <span class="lv {{ post.level }}">{{ post.level }}</span> · {{ post.published_date }}</p>
+{% if post.image %}<img src="{{ post.image.url }}" alt="">{% endif %}</div>
+{% empty %}<p>게시글이 없습니다.</p>{% endfor %}
+{% endblock %}
