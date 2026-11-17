@@ -1,2 +1,2 @@
 - GitHub: https://github.com/0733-Y/mobile-web-finalterm
-- PythonAnywhere URL: (새 계정에 배포 후 기재). 참고: 0733.pythonanywhere.com 은 공통평가 02 PhotoBlog 용이며 SpaceCheck 가 아님.
+- PythonAnywhere URL: (공통평가 02 평가가 끝난 뒤 0733 에 재배포 후 기재). 참고: 현재 0733.pythonanywhere.com 은 공통평가 02 PhotoBlog 용이며 SpaceCheck 가 아님.

@@ -33,4 +33,4 @@ application = get_wsgi_application()
 - 위 "원래 설정"대로 WSGI 파일, Source code, Virtualenv, `/static/`·`/media/` 매핑을 복원하고 Reload 함. Force HTTPS 는 건드리지 않아 비활성 그대로.
 - 확인: 홈 "Intruder Detection" 게시글 37개(id 1~37) 표시, 이미지 37/37 로드, `/api_root/Post/` 200 (37건), 상세 200, 가장 오래된 이미지 200 image/jpeg, `/admin/login/` 200, 정적 파일 200.
 - 0733 계정은 이후 변경하지 않는다. `spacecheck` virtualenv 와 `~/mobile-web-finalterm` 코드는 삭제하지 않고 디스크에 남겨 둠 (웹앱과 연결되어 있지 않음).
-- SpaceCheck 는 새 PythonAnywhere 계정에 배포 예정 → 완료되면 `urls.md` 의 URL 을 새 주소로 교체할 것.
+- SpaceCheck 는 로컬에서 계속 개발하고, 공통평가 02 평가가 끝났다는 학생의 확인 후에 0733 으로 다시 배포한다 (그 전에는 0733 설정을 바꾸지 않는다). 재배포할 때는 이 문서의 "교체 후" 값을 참고.
