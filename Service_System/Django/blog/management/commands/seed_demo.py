@@ -30,12 +30,22 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--admin-password')
         parser.add_argument('--edge-password')
+        parser.add_argument('--reset-passwords', action='store_true',
+                            help='이미 있는 계정의 비밀번호도 새로 설정(지정 안 하면 무작위)하고 seed_credentials.json 에 저장')
 
     def handle(self, *args, **opts):
         creds = {}
         for username, key, is_admin in (('admin', 'admin_password', True),
                                         ('edge', 'edge_password', False)):
-            if User.objects.filter(username=username).exists():
+            existing = User.objects.filter(username=username).first()
+            if existing and opts['reset_passwords']:
+                pw = opts[key] or secrets.token_urlsafe(12)
+                existing.set_password(pw)
+                existing.save()
+                creds[username] = pw
+                self.stdout.write(f'계정 {username}: 비밀번호 재설정')
+                continue
+            if existing:
                 self.stdout.write(f'계정 {username}: 이미 존재 (건너뜀)')
                 continue
             pw = opts[key] or secrets.token_urlsafe(12)
