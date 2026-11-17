@@ -36,6 +36,8 @@ python manage.py collectstatic --noinput
 python manage.py test
 ```
 (`seed_demo` 에 비밀번호를 주지 않으면 무작위로 만들어 `seed_credentials.json` 에 저장한다.)
+비밀번호를 잊었으면 `python manage.py seed_demo --reset-passwords` (무작위 재설정, 같은 파일에 저장) 또는 `python manage.py changepassword <계정>`.
+비밀번호 확인: 서버 콘솔에서 `cat seed_credentials.json` (확인 후 `clear`). 이 파일은 저장소에 올라가지 않는다.
 
 ## C. WSGI 파일 내용
 ```python
