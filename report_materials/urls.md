@@ -1,2 +1,2 @@
 - GitHub: https://github.com/0733-Y/mobile-web-finalterm
-- PythonAnywhere URL: (배포 후 기재)
+- PythonAnywhere URL: https://0733.pythonanywhere.com/ (admin: /admin/, API: /api_root/Post/, /api_root/Space/, 토큰: /api-token-auth/)
