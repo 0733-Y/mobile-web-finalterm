@@ -52,7 +52,7 @@ class ChangeDetection:
         self.state = None            # 서버에 마지막으로 보고한(현재 상태) 인원 수
         self._candidate = None
         self._streak = 0
-        self._last_upload = 0.0
+        self._last_upload = float("-inf")
 
     # ---- 인증 ----
     def get_token(self):

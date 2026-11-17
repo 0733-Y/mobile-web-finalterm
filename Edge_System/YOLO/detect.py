@@ -66,6 +66,9 @@ from utils.general import (
 )
 from utils.torch_utils import select_device, smart_inference_mode
 
+# --- SpaceCheck: 변화 감지 + 서버 업로드 ---
+from changedetection import ChangeDetection, blur_boxes, load_config
+
 
 @smart_inference_mode()
 def run(
@@ -97,6 +100,11 @@ def run(
     half=False,  # use FP16 half-precision inference
     dnn=False,  # use OpenCV DNN for ONNX inference
     vid_stride=1,  # video frame-rate stride
+    config=None,  # SpaceCheck: config.json 경로 (지정 시 변화 감지 활성화)
+    upload=False,  # SpaceCheck: True 면 서버로 업로드, False 면 변화 감지 로그만 출력
+    blur=True,  # SpaceCheck: 업로드 전 사람 영역 블러
+    stable_frames=None,  # SpaceCheck: config 값 덮어쓰기
+    min_interval=None,  # SpaceCheck: config 값 덮어쓰기 (초)
 ):
     """Runs YOLOv5 detection inference on various sources like images, videos, directories, streams, etc.
 
@@ -185,6 +193,18 @@ def run(
         dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
     vid_path, vid_writer = [None] * bs, [None] * bs
 
+    # SpaceCheck: 변화 감지기 (사람 수가 stable_frames 프레임 연속 바뀌면 업로드)
+    cd = None
+    if config:
+        cfg = load_config(config)
+        if stable_frames is not None:
+            cfg["stable_frames"] = stable_frames
+        if min_interval is not None:
+            cfg["min_interval_sec"] = min_interval
+        cd = ChangeDetection(cfg)
+        if upload:
+            cd.get_token()
+
     # Define the path for the CSV file
     csv_path = save_dir / "predictions.csv"
 
@@ -242,6 +262,7 @@ def run(
             s += "{:g}x{:g} ".format(*im.shape[2:])  # print string
             gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
             imc = im0.copy() if save_crop else im0  # for save_crop
+            raw0 = im0.copy() if cd else None  # SpaceCheck: 박스 그리기 전 원본 프레임
             annotator = Annotator(im0, line_width=line_thickness, example=str(names))
             if len(det):
                 # Rescale boxes from img_size to im0 size
@@ -279,6 +300,22 @@ def run(
                         annotator.box_label(xyxy, label, color=colors(c, True))
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / "crops" / names[c] / f"{p.stem}.jpg", BGR=True)
+
+            # SpaceCheck: 사람 수 -> 변화 판정 -> (블러 후) 업로드
+            if cd:
+                count = len(det)  # classes=[0](person) 만 검출되므로 검출 수 = 사람 수
+                if webcam or not vid_cap:
+                    now = None  # 실시간: 시스템 시계
+                else:  # 비디오 파일: 영상 시간 기준 (재생 속도와 무관하게 최소 간격 적용)
+                    now = frame / (vid_cap.get(cv2.CAP_PROP_FPS) or 30)
+                if cd.update(count, now):
+                    snap = blur_boxes(raw0, det[:, :4].tolist()) if blur else raw0
+                    if upload:
+                        res = cd.upload(snap, count)
+                        LOGGER.info(f"[UPLOAD] persons={count} -> post id={res.get('id')} level={res.get('level')}")
+                    else:
+                        LOGGER.info(f"[CHANGE] persons={count} (dry-run, 업로드 안 함)")
+                    cd.mark_uploaded(count, now)
 
             # Stream results
             im0 = annotator.result()
@@ -402,7 +439,15 @@ def parse_opt():
     parser.add_argument("--half", action="store_true", help="use FP16 half-precision inference")
     parser.add_argument("--dnn", action="store_true", help="use OpenCV DNN for ONNX inference")
     parser.add_argument("--vid-stride", type=int, default=1, help="video frame-rate stride")
+    # SpaceCheck
+    parser.add_argument("--config", default=None, help="config.json 경로 (변화 감지 활성화)")
+    parser.add_argument("--upload", action="store_true", help="변화 감지 시 서버로 업로드 (없으면 dry-run)")
+    parser.add_argument("--no-blur", dest="blur", action="store_false", help="업로드 전 사람 블러 끄기")
+    parser.add_argument("--stable-frames", type=int, default=None, help="변화 확정에 필요한 연속 프레임 수")
+    parser.add_argument("--min-interval", type=float, default=None, help="최소 업로드 간격(초)")
     opt = parser.parse_args()
+    if opt.classes is None:
+        opt.classes = [0]  # SpaceCheck: person 클래스만 검출 (1-2 대체)
     opt.imgsz *= 2 if len(opt.imgsz) == 1 else 1  # expand
     print_args(vars(opt))
     return opt
