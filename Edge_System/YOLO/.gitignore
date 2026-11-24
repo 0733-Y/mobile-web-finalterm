@@ -253,3 +253,7 @@ fabric.properties
 
 # SpaceCheck
 !config.example.json
+
+# YuNet face model (download, not committed)
+face_model/
+*.onnx

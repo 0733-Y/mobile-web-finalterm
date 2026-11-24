@@ -69,7 +69,7 @@ def inside_any(cx, cy, boxes):
     return any(x1 <= cx <= x2 and y1 <= cy <= y2 for x1, y1, x2, y2 in boxes)
 
 
-def stability_stats(counts, fps, stable_frames=30, min_interval=60.0):
+def stability_stats(counts, fps, stable_frames=30, min_interval=10.0):
     """프레임별 인원 수 시퀀스의 흔들림 통계 + 규칙 시뮬레이션(오프라인 계산)."""
     changes = sum(1 for a, b in zip(counts, counts[1:]) if a != b)
     runs = []  # (value, length)

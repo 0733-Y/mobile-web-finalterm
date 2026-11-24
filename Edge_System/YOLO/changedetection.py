@@ -60,7 +60,7 @@ class ChangeDetection:
         self.space_id = cfg['space_id']
         self.capacity = cfg['capacity']
         self.stable_frames = cfg.get('stable_frames', 30)
-        self.min_interval = cfg.get('min_interval_sec', 60)
+        self.min_interval = cfg.get('min_interval_sec', 10)  # 학생 동의로 60초 -> 10초 (2026-11-24)
         # 업로드 제목 = "<title_prefix> | <space_name> | N명" (보고서 증거용 학번 뒤 4자리를 prefix 로 설정)
         self.title_prefix = cfg.get('title_prefix', '')
         self.space_name = cfg.get('space_name', f"space{cfg['space_id']}")
