@@ -34,5 +34,6 @@ venv/Scripts/python detect.py --source my_video.mp4 --config config.json --uploa
 ## 필요성 측정 결과 (2026-11-24, 본인 촬영 영상 61.87초)
 - 강의자료 원본(`--mode baseline`): Post 14건 / 사람 수 변화(`--mode count`, 30프레임+60초): Post 1건.
 - YOLO 프레임별 사람 수 변화 33회, 1초 미만 구간 22개.
-- F1 블러 전후 얼굴 수: 미측정 (얼굴 검출 모델 파일 확보 필요).
+- F1 블러 전후 얼굴 수(YuNet): 59 → 0 (마스크 착용으로 원본 검출 자체가 적음).
+- 최소 간격 10초로 변경 후(학생 동의): baseline 14건 / count 6건.
 - 상세: `report_materials/measurements/2026-11-24/README.md`, 측정 스크립트 `Edge_System/YOLO/measure_input.py`

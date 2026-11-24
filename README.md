@@ -19,6 +19,14 @@ python manage.py test
   https://github.com/ultralytics/yolov5/releases 에서 받아 `Edge_System/YOLO/` 에 둔다.
 - **입력 영상**: 본인이 촬영한 영상(`Edge_System/YOLO/` 아래, 예 `my_video.mp4`)은 저장소에 올리지 않는다. 웹캠은 `--source 0`.
 
+## F1 측정용 얼굴 검출 모델 (저장소에 포함되지 않음)
+`Edge_System/YOLO/face_model/face_detection_yunet_2023mar.onnx` (232,589 바이트) — opencv_zoo 에서 받는다:
+```bash
+cd Edge_System/YOLO && mkdir -p face_model
+curl -L -o face_model/face_detection_yunet_2023mar.onnx https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx
+venv/Scripts/python measure_input.py --source <본인 영상> --out <결과 폴더> --face-detector yunet --face-model face_model/face_detection_yunet_2023mar.onnx
+```
+
 ## 외부 코드 출처
 - `Edge_System/YOLO/` 의 기반: [ultralytics/yolov5](https://github.com/ultralytics/yolov5) 버전 7.0.0 (pyproject.toml), 커밋 `1e7cf74cb64d719b34f7315aa13eab9e32cde672` (2026-11-17). 라이선스 AGPL-3.0.
 - 최초 임포트 커밋(`cbe9ea6`)은 원본 그대로이며, 수정은 이후 커밋에서만 이루어졌다(`detect.py` 수정, `changedetection.py` 등 추가).

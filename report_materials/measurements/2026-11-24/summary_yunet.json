@@ -1,0 +1,106 @@
+{
+  "source_name": "selfshot_5960_540p.mp4",
+  "fps": 30.0,
+  "video_seconds": 61.87,
+  "processing_seconds": 142.2,
+  "settings": {
+    "weights": "yolov5s.pt",
+    "imgsz": 640,
+    "conf": 0.25,
+    "iou": 0.45,
+    "classes": [
+      0
+    ],
+    "face_detector": "yunet",
+    "face_model": "face_detection_yunet_2023mar.onnx"
+  },
+  "persons": {
+    "frames": 1856,
+    "count_distribution": {
+      "0": 1196,
+      "1": 649,
+      "2": 11
+    },
+    "frame_to_frame_changes": 33,
+    "runs_total": 34,
+    "runs_shorter_than_30_frames": 22,
+    "longest_run_frames": 307,
+    "sim_count_rule_default": [
+      {
+        "frame": 38,
+        "time_s": 1.27,
+        "persons": 0
+      }
+    ],
+    "sim_count_rule_no_interval": [
+      {
+        "frame": 38,
+        "time_s": 1.27,
+        "persons": 0
+      },
+      {
+        "frame": 79,
+        "time_s": 2.63,
+        "persons": 1
+      },
+      {
+        "frame": 150,
+        "time_s": 5.0,
+        "persons": 0
+      },
+      {
+        "frame": 398,
+        "time_s": 13.27,
+        "persons": 1
+      },
+      {
+        "frame": 682,
+        "time_s": 22.73,
+        "persons": 0
+      },
+      {
+        "frame": 849,
+        "time_s": 28.3,
+        "persons": 1
+      },
+      {
+        "frame": 888,
+        "time_s": 29.6,
+        "persons": 0
+      },
+      {
+        "frame": 1188,
+        "time_s": 39.6,
+        "persons": 1
+      },
+      {
+        "frame": 1265,
+        "time_s": 42.17,
+        "persons": 0
+      },
+      {
+        "frame": 1572,
+        "time_s": 52.4,
+        "persons": 1
+      },
+      {
+        "frame": 1647,
+        "time_s": 54.9,
+        "persons": 0
+      },
+      {
+        "frame": 1799,
+        "time_s": 59.97,
+        "persons": 1
+      }
+    ]
+  },
+  "faces": {
+    "total_raw": 59,
+    "total_blur": 0,
+    "frames_with_face_raw": 59,
+    "frames_with_face_blur": 0,
+    "blur_faces_outside_person_box": 0,
+    "frames_with_face_but_no_person": 0
+  }
+}
