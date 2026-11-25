@@ -1,9 +1,11 @@
 import io
 import tempfile
+from datetime import timedelta
 
 from django.contrib.auth.models import Permission, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
+from django.utils import timezone
 from PIL import Image
 from rest_framework.test import APITestCase
 
@@ -90,3 +92,13 @@ class ApiTests(APITestCase):
         self.login('viewer')
         self.assertEqual(self.client.delete(f'/api_root/Post/{pid}/').status_code, 403)
         self.assertTrue(Post.objects.filter(pk=pid).exists())
+
+    def test_future_client_time_still_listed(self):
+        """Edge 시계가 서버보다 1시간 빨라도 업로드 직후 홈 화면에 보여야 한다."""
+        self.login()
+        future = (timezone.now() + timedelta(hours=1)).isoformat()
+        r = self.client.post('/api_root/Post/', {'title': '5960 | clock', 'published_date': future},
+                             format='multipart')
+        self.assertEqual(r.status_code, 201)
+        self.assertLessEqual(Post.objects.get(pk=r.data['id']).published_date, timezone.now())
+        self.assertContains(self.client.get('/'), '5960 | clock')

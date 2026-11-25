@@ -31,9 +31,9 @@ class BlogImages(viewsets.ModelViewSet):
     filterset_fields = ['space']
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user,
-                        published_date=serializer.validated_data.get(
-                            'published_date') or timezone.now())
+        # 게시 시각은 서버 시계로 정한다. Edge PC 의 시계가 서버보다 빠르면 클라이언트가 보낸
+        # published_date 가 '미래'가 되어 홈 화면(published_date <= now 필터)에 한동안 안 보이기 때문.
+        serializer.save(author=self.request.user, published_date=timezone.now())
 
 
 class SpaceViewSet(viewsets.ReadOnlyModelViewSet):
