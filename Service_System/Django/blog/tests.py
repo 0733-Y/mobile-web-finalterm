@@ -1,7 +1,7 @@
 import io
 import tempfile
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from PIL import Image
@@ -24,10 +24,12 @@ class ApiTests(APITestCase):
         override.enable()
         self.addCleanup(override.disable)
         self.user = User.objects.create_user('edge', password='pw12345!')
+        self.user.user_permissions.add(Permission.objects.get(codename='add_post', content_type__app_label='blog'))
+        self.viewer = User.objects.create_user('viewer', password='pw12345!')
         self.space = Space.objects.create(name='열람실 A', capacity=100)
 
-    def login(self):
-        r = self.client.post('/api-token-auth/', {'username': 'edge', 'password': 'pw12345!'})
+    def login(self, username='edge'):
+        r = self.client.post('/api-token-auth/', {'username': username, 'password': 'pw12345!'})
         self.assertEqual(r.status_code, 200)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + r.data['token'])
 
@@ -72,3 +74,19 @@ class ApiTests(APITestCase):
                          format='multipart')
         r = self.client.get('/api_root/Space/')
         self.assertEqual(r.data['results'][0]['latest']['person_count'], 7)
+
+    def test_viewer_read_only(self):
+        self.login('viewer')
+        self.assertEqual(self.client.get('/api_root/Post/').status_code, 200)
+        self.assertEqual(self.client.get('/api_root/Space/').status_code, 200)
+        r = self.client.post('/api_root/Post/', {'title': 'x', 'space': self.space.id}, format='multipart')
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(Post.objects.count(), 0)
+
+    def test_viewer_cannot_delete(self):
+        self.login()
+        pid = self.client.post('/api_root/Post/', {'title': 'e'}, format='multipart').data['id']
+        self.client.credentials()
+        self.login('viewer')
+        self.assertEqual(self.client.delete(f'/api_root/Post/{pid}/').status_code, 403)
+        self.assertTrue(Post.objects.filter(pk=pid).exists())

@@ -1,6 +1,6 @@
 """초기화 명령: python manage.py seed_demo
 
-- 관리자(admin), Edge 업로드용 계정(edge) 생성
+- 관리자(admin), Edge 업로드용 계정(edge, blog.add_post 권한), 평가용 조회 계정(viewer, 읽기 전용) 생성
 - 예시 Space 생성 (좌석 수는 데모용 임의 값)
 비밀번호는 --admin-password / --edge-password 로 지정하거나,
 지정하지 않으면 무작위 생성하여 `seed_credentials.json`(git 제외)에 저장한다.
@@ -10,7 +10,7 @@ import json
 import secrets
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.core.management.base import BaseCommand
 
 from blog.models import Space
@@ -30,13 +30,15 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--admin-password')
         parser.add_argument('--edge-password')
+        parser.add_argument('--viewer-password')
         parser.add_argument('--reset-passwords', action='store_true',
                             help='이미 있는 계정의 비밀번호도 새로 설정(지정 안 하면 무작위)하고 seed_credentials.json 에 저장')
 
     def handle(self, *args, **opts):
         creds = {}
         for username, key, is_admin in (('admin', 'admin_password', True),
-                                        ('edge', 'edge_password', False)):
+                                        ('edge', 'edge_password', False),
+                                        ('viewer', 'viewer_password', False)):
             existing = User.objects.filter(username=username).first()
             if existing and opts['reset_passwords']:
                 pw = opts[key] or secrets.token_urlsafe(12)
@@ -55,6 +57,11 @@ class Command(BaseCommand):
                 User.objects.create_user(username, password=pw)
             creds[username] = pw
             self.stdout.write(f'계정 {username}: 생성')
+        # 업로드 권한: edge 에만 부여 (viewer 는 권한 없음 = 읽기 전용). 이미 있는 계정에도 매번 맞춰 둔다.
+        add_post = Permission.objects.get(codename='add_post', content_type__app_label='blog')
+        User.objects.get(username='edge').user_permissions.add(add_post)
+        User.objects.get(username='viewer').user_permissions.remove(add_post)
+        self.stdout.write('권한: edge=업로드 가능, viewer=조회만')
         for name, building, floor, cap, outlet in SAMPLE_SPACES:
             _, created = Space.objects.get_or_create(
                 name=name, defaults=dict(building=building, floor=floor,

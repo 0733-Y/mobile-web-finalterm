@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Post, Space
+from .permissions import IsUploaderOrReadOnly
 from .serializers import PostSerializer, SpaceSerializer
 
 
@@ -20,13 +21,13 @@ def post_detail(request, pk):
 
 # ---------------- REST API ----------------
 class BlogImages(viewsets.ModelViewSet):
-    """/api_root/Post/ : POST(Edge 업로드, 2-3), GET 목록·상세(App, 2-4).
+    """/api_root/Post/ : POST(Edge 업로드, 2-3, edge 계정만), GET 목록·상세(App, 2-4, 로그인한 모든 계정).
 
     최신순, 페이지네이션, ?space=<id> 필터.
     """
     queryset = Post.objects.all().order_by('-published_date', '-id')
     serializer_class = PostSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsUploaderOrReadOnly]  # 쓰기는 edge(blog.add_post) 만
     filterset_fields = ['space']
 
     def perform_create(self, serializer):
