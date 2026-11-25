@@ -1,5 +1,7 @@
 # 조건 대비표 체크리스트 (진행 중)
 
+자유 기능: F1 개인정보 블러, F2 혼잡 상태, F3 데이터 오래됨 안내 (아래 "자유 기능 F1~F3" 절)
+
 | 번호 | 구현(O/X) | 대체(O/X) | 파일 / 함수·클래스 | 설명 |
 |---|---|---|---|---|
 | 1-1 | O | X | Edge_System/YOLO/detect.py `run()` | YOLOv5s 사전학습 모델 사용 (yolov5s.pt, 첫 실행 시 자동 다운로드) |
@@ -22,11 +24,41 @@
 ## 예시 데이터 안내
 `python manage.py seed_demo` (blog/management/commands/seed_demo.py)가 만드는 Space 4개(좌석 수 120/80/30/50)는 **데모용 임의 예시 데이터**이며 실제 시설 정보가 아니다.
 
-## 자유 기능 후보 (F1~F3, 학생 확인 필요)
-- F1 개인정보 블러: Edge `blur_boxes` (changedetection.py)
-- F2 혼잡도 상태: Edge `crowd_level` + Service `Space`/`SpaceViewSet`/`SpaceSerializer.get_latest` + App 목록 라벨
-- F3 즐겨찾기 + "여유" 알림: App (미구현)
-※ 사람 수 안정 판정(30프레임 + 60초)은 1-3 대체이므로 자유 기능에 넣지 않음.
+## 자유 기능 F1~F3 (학생 결정 2026-11-25)
+F1 개인정보 블러 / F2 혼잡 상태 / F3 데이터 오래됨 안내. (즐겨찾기·알림은 하지 않음 — 학생 결정)
+조건 대비표와의 대응: F1 → 1-5, F2 → 1-5·2-5·3-1 라벨, F3 → 3-4.
+행 번호는 커밋 `338e349` 기준. 수치는 모두 실측값이며, 측정하지 않은 항목은 "미측정"으로 적는다.
+측정 자료: `report_materials/measurements/2026-11-24/` (본인 촬영 `selfshot_5960_540p.mp4`, 1856프레임, 30fps, 61.87초).
+
+### F1 개인정보 블러 (Edge)
+- **문제 정의**: Edge 가 올리는 스냅샷에 사람 얼굴이 그대로 남으면 공개 서비스에서 누가 공부하는지 알아볼 수 있다. 실측: 같은 영상에서 원본 프레임 기준으로 얼굴 검출기(YuNet)가 얼굴을 찾은 프레임 59개.
+- **설계 이유**: YOLO 가 이미 찾은 사람 박스 전체를 가우시안 블러(커널 51). 버린 안: (1) 얼굴 검출 후 얼굴만 블러 — 실측에서 사람이 있는 660프레임 중 얼굴이 검출된 것은 59프레임뿐(마스크 착용)이라 대부분 놓친다. (2) 이미지 전체 블러 — 좌석·공간 상태까지 안 보여서 사진의 의미가 없어진다.
+- **구현 위치**: `Edge_System/YOLO/changedetection.py` `blur_boxes` (45–52행); 호출 `Edge_System/YOLO/detect.py` 326–329행 (`cd.update` 가 True 일 때 원본 프레임 `raw0` 를 블러한 뒤 `cd.upload`). 끄기 옵션 `--no-blur`.
+- **강의자료 코드와의 차이**: 강의자료 원본 규칙(본 프로젝트의 `--mode baseline` 재현, `upload_baseline`)은 프레임을 320x240 으로 줄여 그대로 올린다(블러 없음). F1 은 원본 해상도에서 사람 영역만 블러한다.
+- **전후 비교 (같은 영상, 같은 검출기 YuNet score 0.9, 1856프레임 전부)**: 얼굴 검출 수 59 → 0, 얼굴이 검출된 프레임 59 → 0. (`summary_yunet.json`)
+- **정상 사례**: 사람이 검출된 프레임 → 박스 영역이 블러되어 업로드됨. count 모드 Post 6건 중 1명 Post 3건은 사람 영역이 블러된 이미지(앱 목록 썸네일과 상세 화면 1건에서 확인), 0명 Post 3건은 블러할 사람이 없음.
+- **예외 사례**: YOLO 가 사람을 놓친 프레임은 블러되지 않는다. 이번 영상에서는 "얼굴은 검출됐는데 사람은 검출되지 않은 프레임" 0개로, 실제 발생은 관찰되지 않음. baseline 모드는 비교용이라 블러하지 않는다.
+- **한계**: 마스크 때문에 원본 얼굴 검출 자체가 59/660 프레임으로 적어, "블러 후 0"은 검출기가 찾을 수 있던 얼굴이 사라졌다는 뜻이지 모든 얼굴이 가려졌다는 증명은 아니다. 블러 강도가 충분한지에 대한 사람 눈 평가는 미측정.
+
+### F2 혼잡 상태 (Edge + Service + App)
+- **문제 정의**: 이미지와 제목만으로는 자리가 얼마나 남았는지 알 수 없다. 실측: 같은 영상을 강의자료 원본 규칙으로 돌리면 Post 14건이 생기지만, 14건 모두 인원 수·공간·등급 정보가 없다(앱에서 "0명 · 공간 미지정 · 등급 없음"으로 표시됨).
+- **설계 이유**: 판정은 명확한 규칙으로 — 인원/좌석 수 < 40% 여유, 40~80% 보통, ≥ 80% 혼잡 (임계값은 Claude 제안, 학생 동의). Edge 에서 계산해 Post 에 `person_count`·`level` 을 함께 올리고, 서버는 공간별 최신 상태를 모아 주며, 앱은 색 라벨로 보여 준다. 버린 안: 서버에서 등급 계산 — 좌석 수를 아는 Edge 설정과 서버 `Space.capacity` 가 이중 관리됨 (현재도 이중 관리 위험은 한계로 남음).
+- **구현 위치**: Edge `changedetection.py` `crowd_level` (35–42행), `ChangeDetection.upload` 103행(`level` 필드); Service `blog/models.py` `Space`(6행~, `capacity` 11행), `Post.person_count`/`level` (38–39행), `blog/serializers.py` `SpaceSerializer.get_latest` (24행~), `blog/views.py` `SpaceViewSet` (39행~); App `LevelStyle.color` (10–15행), `PostAdapter.bindLevel` (77–83행).
+- **강의자료 코드와의 차이**: 강의자료 Post 는 title/text/image/날짜뿐이고 공간·인원·등급 개념이 없다.
+- **전후 비교 (같은 영상)**: 강의자료 원본 규칙 Post 14건 중 인원·등급 있는 Post 0건 → 사람 수 변화 규칙(F2 포함) Post 6건 중 6건에 인원·등급 포함. 사용자가 상태를 알아내는 데 걸리는 시간 비교는 미측정.
+- **정상 사례**: count 모드 Post 6건 → 앱 목록에 "0명/1명 · 중앙도서관 제1열람실", 초록 "여유" 라벨. 단위 테스트 `test_changedetection.py` `test_level`: 좌석 10석에서 3명 여유, 4명 보통, 7명 보통, 8명 혼잡 (통과).
+- **예외 사례**: 공간이 없는 Post(baseline) → "공간 미지정", 회색 "등급 없음".
+- **한계**: 등급은 `capacity` 값에 전적으로 의존한다. 이번 측정은 config 의 capacity=120 이어서 1명(0.8%)도 모두 "여유"였다 — 좌석 수를 잘못 등록하면 등급이 틀린다(ch14 위험 요소). 또 YOLO 인원 오차(실측: 혼자인데 2명으로 센 프레임 11개)가 등급에 그대로 반영될 수 있다(30프레임 안정 조건으로 이번 영상에서는 업로드까지 가지 않음).
+
+### F3 데이터 오래됨 안내 (App)
+- **문제 정의**: Edge 가 멈춰도 앱 목록은 마지막 Post 를 계속 보여 주므로, 오래된 상태를 현재 상태로 오해할 수 있다. 실측: 2026-11-25 15:30 에 앱을 열었을 때 최신 데이터는 2026-11-24 13:00 (약 26.5시간 전). 목록의 각 줄에는 시각만 있어서 이 차이를 사용자가 직접 계산해야 한다.
+- **설계 이유**: 목록은 최신순이므로 맨 위 Post 의 시각 = 현재 필터(전체/공간)의 최종 갱신 시각. 지금과의 차이가 N=10분(학생 결정, Edge 최소 업로드 간격 10초보다 충분히 김)을 넘으면 빨간 띠 "데이터 오래됨 (최종 갱신 시각: …)". 버린 안: 서버에서 판정 — 앱이 보는 시각 기준이 더 직관적이고 서버 변경이 필요 없음. 줄마다 표시 — 화면이 복잡해짐.
+- **구현 위치**: App `StaleChecker.isStale` (17–20행), `PostListActivity.updateStaleBanner` (201–216행, 목록을 받을 때와 `onResume` 에서 호출).
+- **강의자료 코드와의 차이**: 강의자료(공통 평가) 앱 목록은 Post 를 보여 주기만 하고 데이터의 신선도를 판정하지 않는다.
+- **전후 비교 (같은 데이터, 같은 시각)**: 적용 전(띠 없는 목록) — 경고 없음, 각 줄의 시각만 표시 (적용 전 화면은 따로 캡처하지 않음. 보고서용 비교 화면이 필요하면 띠를 끈 빌드로 찍어야 함). 적용 후 — 빨간 띠 "데이터 오래됨 (최종 갱신 시각: 2026-11-24 13:00)" (에뮬레이터 확인). 오인 감소 효과의 사용자 측정은 미측정.
+- **정상 사례**: 방금 만든 Post → 초록 "최종 갱신 시각: 2026-11-25 15:30" (에뮬레이터 확인).
+- **예외 사례**: 10분 초과 → 빨간 띠 (11/24 데이터, 에뮬레이터 확인). 데이터 없는 공간 → 회색 "아직 데이터가 없습니다." (공학관 스터디룸, 에뮬레이터 확인). 단위 테스트 `StaleCheckerTest` 4건: 9분·정확히 10분은 오래되지 않음, 10분 1초·3시간은 오래됨, 시각 없음은 오래됨 (통과).
+- **한계**: 기기 시계가 틀리면 판정도 틀린다. 앱을 켜 둔 채로는 자동 재판정하지 않고, 새로고침이나 화면 복귀 때만 다시 계산한다. "Edge 가 멈춤"과 "사람 수가 안 변해서 업로드가 없음"을 구분하지 못한다(인원이 그대로면 Edge 는 올리지 않음).
 
 ## 필요성 측정 계획 (본인 촬영 영상 도착 후)
 같은 영상으로 두 모드를 각각 실행하고 "X초 동안 Y개 Post" 를 기록 (서버 Post 목록에서 개수 확인):
@@ -51,3 +83,21 @@ venv/Scripts/python detect.py --source my_video.mp4 --config config.json --uploa
 | 데이터 오래됨(N=10) | 방금 만든 Post → 초록 "최종 갱신 시각: 2026-11-25 15:30" | 전날(11/24 13:00) 데이터 → 빨강 "데이터 오래됨 (최종 갱신 시각: 2026-11-24 13:00)" | Post 없는 공간 → 회색 "아직 데이터가 없습니다." |
 - 단위 테스트: `Client_System/Android/app/src/test/.../StaleCheckerTest.java` 4건 통과 (10분 이내/정확히 10분/10분 1초 초과/시각 없음).
 - 오래됨 테스트용 Post 1건(제2열람실, "앱 테스트")은 로컬 DB 에 임시로 만들었다가 삭제함. 온라인(0733) 서버로의 App 동작은 아직 확인하지 않음.
+
+## 대기 중인 스크린샷 목록 (다른 Claude 세션이 컴퓨터 조작으로 촬영 / 학생 촬영)
+규칙: 실행 중인 화면을 직접 캡처(로그 파일을 연 화면은 불가). 각 장에 터미널 경로·주소창·본인 계정·시각 중 2개 이상이 보일 것. 입력은 본인 영상만. 비밀번호가 화면에 나오지 않게 할 것.
+| 파일명 | 내용 | 띄우는 방법 |
+|---|---|---|
+| `git_log.png` | 커밋 이력 | 저장소 루트 PowerShell: `git log --date=short --format="%h %ad %s"` |
+| `1-3_count_mode.png` | count 모드 업로드 | `Edge_System\YOLO` 에서 로컬 서버(`cd Service_System\Django; python manage.py runserver`) 실행 후 `venv\Scripts\python detect.py --source ..\..\..\SpaceCheck_input\selfshot_5960_540p.mp4 --config config.json --upload --mode count --nosave 2>&1 \| Select-String "UPLOAD"` |
+| `need_baseline.png` | 필요성: 원본 규칙 Post 수 | 같은 위치에서 `... --mode baseline --nosave 2>&1 \| Select-String "UPLOAD-BASELINE"` → 줄 수(2026-11-24 실측 14) 가 보이게. 이어서 `(... \| Select-String "UPLOAD-BASELINE").Count` 로 개수 표시 가능 |
+| `need_count.png` | 필요성: 사람 수 규칙 Post 수 | 위 count 모드 실행 화면 (2026-11-24 실측 6, 간격 10초) |
+| `F1_faces.png` | F1 블러 전후 얼굴 수 | `venv\Scripts\python measure_input.py --source ..\..\..\SpaceCheck_input\selfshot_5960_540p.mp4 --out ..\..\report_materials\measurements\shot --face-detector yunet --face-model face_model\face_detection_yunet_2023mar.onnx` 끝의 `"faces"` 출력 (실측 total_raw 59, total_blur 0). 모델 파일은 README 의 다운로드 명령으로 준비 |
+| `F1_app_detail.png` | 블러된 업로드 이미지 | 앱 상세 화면 (단계 연결 증거 3단계에서) |
+| `F2_admin_posts.png` | 인원·등급이 붙은 Post | `https://0733.pythonanywhere.com/admin/blog/post/` (학생이 admin 로그인) — 인원·등급 열 |
+| `F2_app_list.png` | 앱 등급 라벨 | 앱 목록 (초록 여유 / 회색 등급 없음 라벨) |
+| `F3_fresh.png` / `F3_stale.png` / `F3_nodata.png` | 데이터 오래됨 안내 | 업로드 직후 앱 목록(초록) / 10분 넘게 지난 뒤 새로고침(빨강) / 공간 필터를 Post 없는 "공학관 스터디룸" 으로(회색) |
+| `2-1_tests.png` | 토큰 인증·viewer 읽기 전용 | `cd Service_System\Django; python manage.py test -v 2` (test_viewer_read_only, test_viewer_cannot_delete 포함 7건 OK) |
+| `2-2_blog.png`, `2-2_admin.png` | 이미지 블로그·관리 | `https://0733.pythonanywhere.com/`, `/admin/` |
+| `3-1_list.png`, `3-2_detail.png`, `3-3_login.png` | 앱 화면 | 에뮬레이터에서 로그인 화면 → 목록 → 상세 |
+| `stage_1_edge.png`, `stage_2_web.png`, `stage_3_app.png` | 단계 연결 증거 | `report_materials/stage_connection.md` 절차대로 |

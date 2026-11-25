@@ -14,3 +14,6 @@ venv/Scripts/python detect.py --source my_video.mp4 --config config.json --uploa
 venv/Scripts/python detect.py --source 0 --config config.json --upload --mode baseline
 ```
 기대 결과: 로그에 `[UPLOAD] persons=N -> post id=...`, 서버 Post 제목이 `5960 | 중앙도서관 제1열람실 | N명`.
+
+## 단계 연결 증거 (Edge → 0733 → App)
+`report_materials/stage_connection.md` 의 절차를 따른다 (Edge 는 환경변수로 0733 에 업로드, 웹과 앱에서 같은 Post 확인).

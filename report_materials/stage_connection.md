@@ -1,0 +1,41 @@
+# 단계 연결 증거 — 실행 절차 (Edge → 0733 → App, 같은 Post)
+
+목표(템플릿 v2.0): **한 번의 실행으로 만든 같은 Post**(제목에 `5960`)가 ① Edge 터미널 ② PythonAnywhere 웹 ③ App 목록에 모두 보이는 화면. 로컬 DB 복사·수동 업로드는 인정되지 않음.
+비밀번호는 학생이 직접 입력한다. 이 문서와 저장소에는 비밀번호가 없다.
+
+## 0. 준비
+- 0733.pythonanywhere.com 이 SpaceCheck 로 동작 중 (`https://0733.pythonanywhere.com/` 제목이 SpaceCheck).
+- edge / viewer 비밀번호: 학생이 PythonAnywhere 콘솔에서 `cat ~/mobile-web-finalterm/Service_System/Django/seed_credentials.json` 으로 확인 (확인 후 `clear`).
+- 입력 영상: 본인 촬영 `SpaceCheck_input\selfshot_5960_540p.mp4` (저장소 밖, `Edge_System\YOLO` 기준 상대경로 `..\..\..\SpaceCheck_input\selfshot_5960_540p.mp4`).
+- Edge 설정 `Edge_System\YOLO\config.json`: `space_id` 1, `title_prefix` "5960", `space_name` "중앙도서관 제1열람실", `min_interval_sec` 10, `mode` "count". 서버 주소·계정·비밀번호는 아래 환경변수가 덮어쓴다.
+- 화면에 시계(작업 표시줄)가 보이게 둔다. 각 스크린샷에는 터미널 경로/주소창/계정/시각 중 2개 이상이 보여야 한다.
+
+## 1. Edge (화면 ①) — PowerShell
+```powershell
+cd C:\Users\<사용자>\Desktop\SpaceCheck\Edge_System\YOLO
+$env:SPACECHECK_SERVER = "https://0733.pythonanywhere.com"
+$env:SPACECHECK_USERNAME = "edge"
+$sec = Read-Host "edge password" -AsSecureString
+$env:SPACECHECK_PASSWORD = [System.Net.NetworkCredential]::new("", $sec).Password
+venv\Scripts\python detect.py --source ..\..\..\SpaceCheck_input\selfshot_5960_540p.mp4 --config config.json --upload --mode count --nosave 2>&1 | Select-String "UPLOAD|Error|Traceback"
+```
+- `Read-Host -AsSecureString` 은 입력이 `*` 로 표시된다 (그냥 `Read-Host` 는 평문으로 보이므로 쓰지 않는다).
+- 기대 결과: `[UPLOAD] persons=N -> post id=<번호> level=여유` 줄이 여러 개. 참고로 같은 영상을 로컬 서버에 올렸을 때는 6줄이었다 (2026-11-24 측정). 온라인 결과 수치는 실행 후 그대로 기록할 것.
+- **증거로 쓸 Post = 마지막 `[UPLOAD]` 줄의 post id** (가장 최신이라 웹·앱 목록 맨 위에 온다). 이 줄과 터미널 경로, 시계가 보이게 캡처 → `screenshots/stage_1_edge.png`.
+- 끝나면 `Remove-Item Env:SPACECHECK_PASSWORD` 로 비밀번호 환경변수를 지운다.
+
+## 2. PythonAnywhere 웹 (화면 ②)
+- 브라우저에서 `https://0733.pythonanywhere.com/` → 맨 위 글이 `5960 | 중앙도서관 제1열람실 | N명`.
+- 같은 Post 상세: `https://0733.pythonanywhere.com/post/<1단계의 post id>/` (주소창의 id 와 1단계 id 가 같음을 보이게).
+- 캡처 → `screenshots/stage_2_web.png` (주소창 포함). 추가로 `/admin/` 의 Posts 목록(인원·등급 열)도 찍을 수 있음 (admin 로그인은 학생이 직접).
+
+## 3. App (화면 ③) — 에뮬레이터
+- 앱 실행 → 서버 "온라인 (0733.pythonanywhere.com)" 선택 → 아이디 `viewer`, 비밀번호 직접 입력 → 로그인.
+- 목록 맨 위 = 1단계 마지막 Post (같은 제목·시각). 탭해서 상세(블러된 이미지) 확인.
+- 이때 데이터 오래됨 띠는 초록 "최종 갱신 시각: …" 이어야 함 (업로드 직후). 10분 넘게 지난 뒤 새로고침하면 빨간 "데이터 오래됨" 으로 바뀌는 것도 F3 증거로 찍을 수 있음.
+- 캡처 → `screenshots/stage_3_app.png`, `screenshots/stage_3_app_detail.png`.
+
+## 확인 사항
+- 세 화면의 제목이 모두 `5960` 으로 시작하고, 웹 주소의 id = Edge 터미널의 post id.
+- 업로드는 영상 처리 중 몇 초 안에 몰려서 일어나므로 시각(분 단위)이 같을 수 있다 → 같은 Post 를 고를 때는 id 와 "목록 맨 위"를 기준으로 한다.
+- 등급이 모두 "여유"인 이유: config 의 capacity=120 (1명 = 0.8%). 다른 등급을 보여 주려면 실행 전에 config.json 의 `capacity` 를 낮춘다 (예: 2 → 1명이 50% 보통). 바꿨다면 보고서에 그 값을 적을 것.
