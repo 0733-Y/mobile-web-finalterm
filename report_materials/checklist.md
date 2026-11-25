@@ -22,7 +22,7 @@
 (1-x, 3-x, PythonAnywhere 배포는 이후 단계에서 추가)
 
 ## 예시 데이터 안내
-`python manage.py seed_demo` (blog/management/commands/seed_demo.py)가 만드는 Space 4개(좌석 수 120/80/30/50)는 **데모용 임의 예시 데이터**이며 실제 시설 정보가 아니다.
+`python manage.py seed_demo` (blog/management/commands/seed_demo.py)가 만드는 Space 5개(좌석 수 120/80/30/50, 그리고 단계 연결 시연용 "스터디룸 A" 2석 — 학생 동의 2026-11-25)는 **데모용 임의 예시 데이터**이며 실제 시설 정보가 아니다.
 
 ## 자유 기능 F1~F3 (학생 결정 2026-11-25)
 F1 개인정보 블러 / F2 혼잡 상태 / F3 데이터 오래됨 안내. (즐겨찾기·알림은 하지 않음 — 학생 결정)

@@ -2,11 +2,11 @@
   "server": "http://127.0.0.1:8000",
   "username": "edge",
   "password": "CHANGE_ME",
-  "space_id": 1,
-  "capacity": 120,
+  "space_id": 5,
+  "capacity": 2,
   "stable_frames": 30,
   "min_interval_sec": 10,
   "title_prefix": "5960",
-  "space_name": "중앙도서관 제1열람실",
+  "space_name": "스터디룸 A",
   "mode": "count"
 }
