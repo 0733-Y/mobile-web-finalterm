@@ -84,20 +84,28 @@ venv/Scripts/python detect.py --source my_video.mp4 --config config.json --uploa
 - 단위 테스트: `Client_System/Android/app/src/test/.../StaleCheckerTest.java` 4건 통과 (10분 이내/정확히 10분/10분 1초 초과/시각 없음).
 - 오래됨 테스트용 Post 1건(제2열람실, "앱 테스트")은 로컬 DB 에 임시로 만들었다가 삭제함. 온라인(0733) 서버로의 App 동작은 아직 확인하지 않음.
 
-## 대기 중인 스크린샷 목록 (다른 Claude 세션이 컴퓨터 조작으로 촬영 / 학생 촬영)
-규칙: 실행 중인 화면을 직접 캡처(로그 파일을 연 화면은 불가). 각 장에 터미널 경로·주소창·본인 계정·시각 중 2개 이상이 보일 것. 입력은 본인 영상만. 비밀번호가 화면에 나오지 않게 할 것.
-| 파일명 | 내용 | 띄우는 방법 |
-|---|---|---|
-| `git_log.png` | 커밋 이력 | 저장소 루트 PowerShell: `git log --date=short --format="%h %ad %s"` |
-| `1-3_count_mode.png` | count 모드 업로드 | `Edge_System\YOLO` 에서 로컬 서버(`cd Service_System\Django; python manage.py runserver`) 실행 후 `venv\Scripts\python detect.py --source ..\..\..\SpaceCheck_input\selfshot_5960_540p.mp4 --config config.json --upload --mode count --nosave 2>&1 \| Select-String "UPLOAD"` |
-| `need_baseline.png` | 필요성: 원본 규칙 Post 수 | 같은 위치에서 `... --mode baseline --nosave 2>&1 \| Select-String "UPLOAD-BASELINE"` → 줄 수(2026-11-24 실측 14) 가 보이게. 이어서 `(... \| Select-String "UPLOAD-BASELINE").Count` 로 개수 표시 가능 |
-| `need_count.png` | 필요성: 사람 수 규칙 Post 수 | 위 count 모드 실행 화면 (2026-11-24 실측 6, 간격 10초) |
-| `F1_faces.png` | F1 블러 전후 얼굴 수 | `venv\Scripts\python measure_input.py --source ..\..\..\SpaceCheck_input\selfshot_5960_540p.mp4 --out ..\..\report_materials\measurements\shot --face-detector yunet --face-model face_model\face_detection_yunet_2023mar.onnx` 끝의 `"faces"` 출력 (실측 total_raw 59, total_blur 0). 모델 파일은 README 의 다운로드 명령으로 준비 |
-| `F1_app_detail.png` | 블러된 업로드 이미지 | 앱 상세 화면 (단계 연결 증거 3단계에서) |
-| `F2_admin_posts.png` | 인원·등급이 붙은 Post | `https://0733.pythonanywhere.com/admin/blog/post/` (학생이 admin 로그인) — 인원·등급 열 |
-| `F2_app_list.png` | 앱 등급 라벨 | 앱 목록 (초록 여유 / 회색 등급 없음 라벨) |
-| `F3_fresh.png` / `F3_stale.png` / `F3_nodata.png` | 데이터 오래됨 안내 | 업로드 직후 앱 목록(초록) / 10분 넘게 지난 뒤 새로고침(빨강) / 공간 필터를 Post 없는 "공학관 스터디룸" 으로(회색) |
-| `2-1_tests.png` | 토큰 인증·viewer 읽기 전용 | `cd Service_System\Django; python manage.py test -v 2` (test_viewer_read_only, test_viewer_cannot_delete 포함 7건 OK) |
-| `2-2_blog.png`, `2-2_admin.png` | 이미지 블로그·관리 | `https://0733.pythonanywhere.com/`, `/admin/` |
-| `3-1_list.png`, `3-2_detail.png`, `3-3_login.png` | 앱 화면 | 에뮬레이터에서 로그인 화면 → 목록 → 상세 |
-| `stage_1_edge.png`, `stage_2_web.png`, `stage_3_app.png` | 단계 연결 증거 | `report_materials/stage_connection.md` 절차대로 |
+## 스크린샷 목록 (2026-11-25 촬영, `report_materials/screenshots/`, 저장소 제외)
+보이는 증거 항목: 주소창 / 터미널 경로 / 계정 / 시각 (2개 이상). 비밀번호·PythonAnywhere 콘솔 내용은 없음.
+| 상태 | 파일 | 내용 | 보이는 증거 항목 |
+|---|---|---|---|
+| ✅ | `git_log.png` | `git log --date=short --format="%h %ad %s"` | 터미널 경로, 작업 표시줄 시각 (모든 커밋 후 마지막 촬영) |
+| ✅ | `1-3_count_mode.png` | 0733 업로드 count 모드: `[UPLOAD]` 6줄(post id 13~18), 브라우저 0733 홈 | 터미널 경로, 주소창, 시각 |
+| ✅ | `need_count.png` | 필요성: 사람 수 규칙 6건 (위와 같은 화면) | 터미널 경로, 주소창, 시각 |
+| ✅ | `need_baseline.png` | 필요성: 강의자료 원본 규칙(로컬 서버) `[UPLOAD-BASELINE]` 14줄, "baseline posts in 61.87 s video: 14" | 터미널 경로, 실행 시각 18:03:48, 작업 표시줄 시각 |
+| ✅ | `F1_faces.png` | YuNet 얼굴 수 total_raw 59 / total_blur 0, 인원 분포 {0:1196,1:649,2:11} | 터미널 경로, 시각 18:06:48 |
+| ✅ | `F1_app_detail.png` | 앱 상세 — 블러된 업로드 이미지 (= stage_3_app_detail) | 상태바 시각 (앱 화면은 계정 표시 없음) |
+| ❌ | `F2_admin_posts.png` | admin Posts 목록(인원·등급 열) | **미촬영**: admin 로그인에 비밀번호 입력이 필요하고 AI 는 입력할 수 없음 → 학생이 로그인 후 촬영 |
+| ✅ | `F2_app_list.png` | 앱 목록 등급 라벨(보통 노랑/여유 초록) (= f3_green) | 상태바 시각 |
+| ✅ | `F3_fresh.png` / `f3_green.png` | 초록 띠 "최종 갱신 시각: 2026-11-25 17:59" (2차 실행 직후) | 상태바 시각 5:59 |
+| ✅ | `F3_stale.png` / `f3_red.png` | 빨간 띠 "데이터 오래됨 (최종 갱신 시각: 2026-11-25 17:20)" (= stage_3_app) | 상태바 시각 5:43 |
+| ✅ | `F3_nodata.png` | 공학관 스터디룸 → 회색 "아직 데이터가 없습니다." | 상태바 시각 6:07 |
+| ✅ | `2-1_tests.png` | `manage.py test -v 2` 8건 OK (test_viewer_read_only 등) | 터미널 경로, 시각 |
+| ✅ | `2-2_blog.png` | 0733 이미지 블로그 홈 (1-3 과 같은 화면의 브라우저 부분) | 주소창, 시각 |
+| ❌ | `2-2_admin.png` | Django admin | **미촬영**: 위와 같은 이유 (admin 로그인) |
+| ✅ | `3-1_list.png` | 앱 목록 (스터디룸 A, = stage_3_app) | 상태바 시각 |
+| ✅ | `3-2_detail.png` | 앱 상세 (= stage_3_app_detail) | 상태바 시각 |
+| ✅ | `3-3_login.png` | 앱 로그인 화면 (계정 viewer, 온라인 서버, "로그아웃했습니다.") | 계정, 상태바 시각 |
+| ✅ | `stage_1_edge_draft.jpg` | 1단계 Edge 터미널 (학생 촬영) | 터미널 |
+| ✅ | `stage_2_web.png`, `stage_3_app.png`, `stage_3_app_detail.png`, `stage_all.png` | 단계 연결 증거 (post id 6) | 주소창·시각 / 상태바 시각 / 터미널·주소창·시각 |
+| ✅ | `report_materials/demo/demo.mp4` | 시연 영상 69.5초 (2차 실행, post id 13~18) | 터미널 경로, 주소창, 작업 표시줄 시각 |
+- 앱 단독 화면은 "상태바 시각" 1개만 보인다 (앱이 계정을 표시하지 않음). 두 항목이 필요하면 `stage_all.png` 처럼 데스크톱 전체(작업 표시줄 시각 + 상태바)로 다시 찍어야 함.

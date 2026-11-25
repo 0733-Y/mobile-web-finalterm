@@ -60,3 +60,15 @@
 - 원인: targetSdk 37 에서는 화면이 상태바·액션바 아래까지 그려짐.
 - 해결: NoActionBar 테마 + 각 레이아웃에 MaterialToolbar, 루트 뷰에 시스템 바 크기만큼 패딩 (`SystemBars.setup`).
 - 확인: 에뮬레이터 스크린샷에서 툴바 아래에 제목·입력칸이 정상 표시.
+
+## 13. 시연 녹화 중 터미널 한글 깨짐 (2026-11-25)
+- 증상: `detect.py ... | Select-String` 출력에서 level(여유/보통)이 깨진 글자로 표시.
+- 원인: Windows PowerShell 5.1 이 파이프로 받은 Python 의 UTF-8 출력을 콘솔 기본 코드페이지(GBK)로 해석.
+- 해결: 실행 전 `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8`, `$env:PYTHONIOENCODING = "utf-8"`.
+- 확인: 2차 녹화(`demo/demo.mp4`)에서 `level=여유/보통` 정상 표시. (실패 단계: 표시 — 서버 데이터는 정상)
+
+## 14. 앱 메뉴 글자가 보이지 않음 (2026-11-25)
+- 증상: 목록 화면 ⋮ 메뉴(새로고침/로그아웃)가 흰 바탕에 흰 글자.
+- 원인: 툴바에 어두운 테마 오버레이를 줘서 팝업 메뉴도 흰 글자를 상속.
+- 해결: 세 레이아웃의 MaterialToolbar 에 `app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light"`.
+- 확인: 에뮬레이터에서 "새로고침", "로그아웃" 이 검은 글자로 보임.
