@@ -47,3 +47,16 @@
 - 확인: 테스트 `blog/tests.py` `test_viewer_read_only`(viewer GET 200, POST 403), `test_viewer_cannot_delete`(DELETE 403) 포함 7건 통과(로컬·PythonAnywhere 모두). 서버에서 `has_perm('blog.add_post')`: admin True, edge True, viewer False.
 - 영향: App 은 읽기만 하므로(로그인 토큰 발급 `/api-token-auth/` 는 권한과 무관) 변경 없음. Edge 는 edge 계정을 쓰므로 그대로 업로드 가능.
 - 비밀번호: viewer 비밀번호는 서버의 git 제외 파일 `seed_credentials.json` 에만 있고, 저장소의 `url.txt` 에는 쓰지 않음(제출 압축파일 쪽에만 학생이 기재).
+
+## 11. Android 17(API 37) 에서 에뮬레이터 → 로컬 서버(10.0.2.2) 연결 실패 (2026-11-25)
+- 증상: 로그인 시 "서버에 연결할 수 없습니다". 서버 로그에는 요청이 오지 않음. logcat: `SocketTimeoutException: failed to connect to /10.0.2.2 (port 8000) ... after 15000ms`.
+- 원인 확인: 에뮬레이터 셸에서는 `nc 10.0.2.2 8000` 으로 서버에 접속되고 응답(401)도 옴 → 네트워크 문제가 아니라 앱 단위 제한. API 37 SDK 에 런타임 권한 `android.permission.ACCESS_LOCAL_NETWORK` 가 있고(위험 권한), 앱에 없었음 → 사설 IP 접속이 막힘.
+- 해결: Manifest 에 권한 선언, 로그인 때 "에뮬레이터 로컬" 서버를 고른 경우에만 런타임 요청 (`LoginActivity.needsLocalNetworkPermission`, `onRequestPermissionsResult`). 온라인(https) 서버는 권한 불필요.
+- 확인: 권한 허용 후 같은 요청이 서버에 도착(400/200), 로그인·목록 정상.
+- 실패 단계: 표시/연결 단계 (YOLO 인식·판정 규칙과 무관).
+
+## 12. Android 15+ edge-to-edge 로 화면 위쪽이 액션바에 가려짐 (2026-11-25)
+- 증상: 로그인 화면 제목과 "서버" 라벨이 액션바 뒤에 겹쳐 보이지 않음.
+- 원인: targetSdk 37 에서는 화면이 상태바·액션바 아래까지 그려짐.
+- 해결: NoActionBar 테마 + 각 레이아웃에 MaterialToolbar, 루트 뷰에 시스템 바 크기만큼 패딩 (`SystemBars.setup`).
+- 확인: 에뮬레이터 스크린샷에서 툴바 아래에 제목·입력칸이 정상 표시.

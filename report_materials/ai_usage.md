@@ -9,6 +9,7 @@
 | Edge_System/YOLO/changedetection.py | AI | 변화 감지, 업로드, 블러, 제목 접두어, baseline 모드 |
 | Edge_System/YOLO/test_changedetection.py, post_test.py | AI | |
 | Service_System/Django/blog/*, config/* | AI | 모델·API·admin·테스트·seed 명령, 권한 클래스(permissions.py, 학생이 viewer 읽기 전용 결정) |
+| Client_System/Android/* | AI | 로그인·목록·상세·공간 필터·데이터 오래됨 안내. 학생 결정: N=10분, 화면 문구 한국어, 서버 주소 전환 방식 |
 | report_materials/* | AI 작성 초안 | |
 
 검증 방법: Django `manage.py test`, Edge `unittest`, 로컬 서버에 실제 업로드 후 DB/이미지 확인.
