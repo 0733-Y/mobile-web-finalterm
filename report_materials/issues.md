@@ -39,3 +39,11 @@
 
 ## 9. 얼굴 검출기의 한계 (F1 측정, 2026-11-24)
 - 학생이 마스크를 착용해 YuNet 이 사람 있는 660프레임 중 59프레임에서만 얼굴을 찾음. 블러 후 0건이지만, 검출기가 못 찾은 얼굴이 가려졌는지는 이 수치로 확인할 수 없음. 임계값을 낮춰 수치를 맞추지 않음.
+
+## 10. 평가용 viewer 계정을 읽기 전용으로 만든 이유 (권한 설계, 2026-11-25 학생 결정)
+- 문제: 처음 설계는 "로그인한 계정이면 누구나 POST 가능"(`IsAuthenticated`). 제출물 `url.txt` 에 평가용 계정 비밀번호를 적어야 하는데, 그 계정으로 Post 를 올리거나 지울 수 있으면 서비스 데이터(공간별 최신 인원)가 오염될 수 있다.
+- 결정: 쓰기(POST/PUT/PATCH/DELETE)는 `blog.add_post` 권한이 있는 계정만 허용. 권한은 Edge 업로드용 `edge` 계정(과 관리자)에만 부여하고, `viewer` 는 조회(GET)만 가능.
+- 구현: `Service_System/Django/blog/permissions.py` `IsUploaderOrReadOnly`, `blog/views.py` `BlogImages.permission_classes`, 권한 부여는 `blog/management/commands/seed_demo.py` (`Command.handle`).
+- 확인: 테스트 `blog/tests.py` `test_viewer_read_only`(viewer GET 200, POST 403), `test_viewer_cannot_delete`(DELETE 403) 포함 7건 통과(로컬·PythonAnywhere 모두). 서버에서 `has_perm('blog.add_post')`: admin True, edge True, viewer False.
+- 영향: App 은 읽기만 하므로(로그인 토큰 발급 `/api-token-auth/` 는 권한과 무관) 변경 없음. Edge 는 edge 계정을 쓰므로 그대로 업로드 가능.
+- 비밀번호: viewer 비밀번호는 서버의 git 제외 파일 `seed_credentials.json` 에만 있고, 저장소의 `url.txt` 에는 쓰지 않음(제출 압축파일 쪽에만 학생이 기재).

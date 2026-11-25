@@ -13,6 +13,7 @@ python manage.py runserver
 python manage.py test
 ```
 인증: DRF Token. `POST /api-token-auth/` → 이후 헤더 `Authorization: Token <token>`.
+권한: 조회(GET)는 로그인한 모든 계정, 업로드·수정·삭제는 `blog.add_post` 권한이 있는 `edge` 계정만. `seed_demo` 가 admin / edge / viewer(읽기 전용) 계정을 만든다.
 
 ## 큰 파일 (저장소에 포함되지 않음)
 - **YOLOv5 가중치 (`yolov5s.pt`)**: 처음 `detect.py` 실행 시 자동 다운로드되며, 수동으로는

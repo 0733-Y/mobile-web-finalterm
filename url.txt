@@ -1,0 +1,9 @@
+Service URL (PythonAnywhere): https://0733.pythonanywhere.com/
+  - Image Blog: https://0733.pythonanywhere.com/
+  - Django admin: https://0733.pythonanywhere.com/admin/
+  - REST API: https://0733.pythonanywhere.com/api_root/  (token: POST /api-token-auth/)
+GitHub: https://github.com/0733-Y/mobile-web-finalterm
+
+Viewer account (read-only: GET only, cannot upload/delete)
+  username: viewer
+  password: (제출 압축파일의 url.txt 에만 기재)

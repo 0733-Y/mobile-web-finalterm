@@ -8,7 +8,7 @@
 | Edge_System/YOLO/detect.py | 원본 + AI 수정 | SpaceCheck 주석이 달린 부분이 AI 수정 (person 한정, ChangeDetection 호출, 옵션 추가) |
 | Edge_System/YOLO/changedetection.py | AI | 변화 감지, 업로드, 블러, 제목 접두어, baseline 모드 |
 | Edge_System/YOLO/test_changedetection.py, post_test.py | AI | |
-| Service_System/Django/blog/*, config/* | AI | 모델·API·admin·테스트·seed 명령 |
+| Service_System/Django/blog/*, config/* | AI | 모델·API·admin·테스트·seed 명령, 권한 클래스(permissions.py, 학생이 viewer 읽기 전용 결정) |
 | report_materials/* | AI 작성 초안 | |
 
 검증 방법: Django `manage.py test`, Edge `unittest`, 로컬 서버에 실제 업로드 후 DB/이미지 확인.
