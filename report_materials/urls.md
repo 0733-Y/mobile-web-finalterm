@@ -1,2 +1,2 @@
 - GitHub: https://github.com/0733-Y/mobile-web-finalterm
-- PythonAnywhere URL: (공통평가 02 평가가 끝난 뒤 0733 에 재배포 후 기재). 참고: 현재 0733.pythonanywhere.com 은 공통평가 02 PhotoBlog 용이며 SpaceCheck 가 아님.
+- PythonAnywhere URL: https://0733.pythonanywhere.com/ (2026-11-25 부터 SpaceCheck. admin: /admin/, API: /api_root/Post/, /api_root/Space/, 토큰: /api-token-auth/. http 는 https 로 리다이렉트)
