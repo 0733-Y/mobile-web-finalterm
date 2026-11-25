@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SpaceCheck</string>
+    <string name="login_title">SpaceCheck 로그인</string>
+    <string name="login_server">서버</string>
+    <string name="login_username">아이디</string>
+    <string name="login_password">비밀번호</string>
+    <string name="login_button">로그인</string>
+    <string name="login_empty">아이디와 비밀번호를 입력하세요.</string>
+    <string name="login_wrong">아이디 또는 비밀번호가 올바르지 않습니다.</string>
+    <string name="network_error">서버에 연결할 수 없습니다. 네트워크와 서버 주소를 확인하세요.</string>
+    <string name="server_error">서버 오류 (HTTP %1$d)</string>
+    <string name="session_expired">로그인이 만료되었습니다. 다시 로그인하세요.</string>
+    <string name="local_network_denied">로컬 서버(10.0.2.2)에 접속하려면 로컬 네트워크 권한이 필요합니다.</string>
+    <string name="logged_out">로그아웃했습니다.</string>
+
+    <string name="list_title">학습 공간 혼잡도</string>
+    <string name="all_spaces">전체 공간</string>
+    <string name="no_space">공간 미지정</string>
+    <string name="no_posts">게시글이 없습니다.</string>
+    <string name="people_and_space">%1$d명 · %2$s</string>
+    <string name="stale_data">데이터 오래됨 (최종 갱신 시각: %1$s)</string>
+    <string name="last_updated">최종 갱신 시각: %1$s</string>
+    <string name="no_data_yet">아직 데이터가 없습니다.</string>
+    <string name="action_refresh">새로고침</string>
+    <string name="action_logout">로그아웃</string>
+
+    <string name="detail_title">상세</string>
+    <string name="people_count">현재 인원 %1$d명</string>
+    <string name="updated_at">갱신 시각: %1$s</string>
+</resources>
