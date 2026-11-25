@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 /**
  * Android 15 이상은 화면이 상태바·내비게이션바 아래까지 그려진다(edge-to-edge).
@@ -20,6 +21,8 @@ public final class SystemBars {
         Toolbar toolbar = activity.findViewById(toolbarId);
         activity.setSupportActionBar(toolbar);
         View root = activity.findViewById(rootId);
+        // 상태바 배경이 흰색이므로 아이콘·시계를 어두운 색으로 (시각이 보이도록)
+        new WindowInsetsControllerCompat(activity.getWindow(), root).setAppearanceLightStatusBars(true);
         ViewCompat.setOnApplyWindowInsetsListener(root, (v, windowInsets) -> {
             Insets bars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
             v.setPadding(bars.left, bars.top, bars.right, bars.bottom);

@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.util.LruCache;
 import android.widget.ImageView;
 
@@ -59,6 +60,7 @@ public final class ImageLoader {
                 return BitmapFactory.decodeStream(in);
             }
         } catch (Exception e) {
+            Log.w("SpaceCheck", "image load failed: " + url, e);
             return null;
         } finally {
             if (conn != null) conn.disconnect();
