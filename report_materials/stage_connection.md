@@ -46,8 +46,9 @@ venv\Scripts\python detect.py --source ..\..\..\SpaceCheck_input\selfshot_5960_5
 - 1단계(Edge, 학생 실행): 0733 에 post id=6 생성 — `5960 | 스터디룸 A | 1명`, 등급 보통. 터미널 초안 `screenshots/stage_1_edge_draft.jpg`.
 - 같은 실행에서 0733 홈 화면에 스터디룸 A Post 6건 표시 확인 (2026-11-25 08:26 UTC 기준).
 - 2단계(웹): `https://0733.pythonanywhere.com/post/6/` 에서 제목 `5960 | 스터디룸 A | 1명`, 보통, 2026-11-25 17:20 확인 → `screenshots/stage_2_web.png` (주소창·작업 표시줄 시계 17:38).
+- 스크린샷은 저장소에 올리지 않는다 (학생 결정, `.gitignore` 에 `report_materials/screenshots/`).
 - 3단계(App, 학생이 viewer 로 로그인): 공간 "스터디룸 A" 필터 → 맨 위 `5960 | 스터디룸 A | 1명`, 보통, 17:20 → `screenshots/stage_3_app.png`, 상세 → `screenshots/stage_3_app_detail.png`.
   - 앱은 post id 를 표시하지 않는다. 맨 위 항목이 id 6 인 근거: 같은 공간의 최신 Post 가 웹 홈에서 `/post/6/` 이고 `/post/7/` 은 404 (2026-11-25 확인).
-  - 에뮬레이터 상태바 시각은 UTC(8:36 = 한국 17:36). 보고서에 적을 때 주의.
+  - 에뮬레이터 시간대를 Asia/Seoul 로 바꾼 뒤 다시 촬영 (상태바 5:43 = 17:43 KST). 상세 화면은 스크롤해 "갱신 시각: 2026-11-25 17:20" 줄 전체가 보이게 함.
   - 촬영 시점에 업로드 후 10분이 지나 F3 빨간 띠("데이터 오래됨 (최종 갱신 시각: 2026-11-25 17:20)")가 함께 찍힘.
 - 진행 중 고친 것: 앱 상태바 아이콘이 흰 바탕에 흰색이라 시각이 안 보이던 문제(`SystemBars.setup` 에서 어두운 아이콘으로), 이미지 로드 실패를 logcat 에 남기도록(`ImageLoader`), 서버가 published_date 를 직접 기록(홈 화면 필터 문제 대응, 커밋 22e17ac).

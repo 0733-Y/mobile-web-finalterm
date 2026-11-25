@@ -18,6 +18,8 @@
 - 자유 기능 F1 개인정보 블러 / F2 혼잡 상태 / F3 데이터 오래됨 안내 (즐겨찾기·알림은 하지 않기로 결정)
 - 0733 계정을 SpaceCheck 로 전환, YOLOv5 원본 단독 커밋을 위한 이력 재작성, 커밋 서명 줄 제거
 - 입력 영상 촬영(본인), 영상 내용 판정(중복 검출·오검출 확인)
+- Post 게시 시각(published_date)을 Edge 가 보낸 값 대신 서버가 기록하도록 변경 (2026-11-25, Edge PC 시계가 빠르면 홈 화면에서 새 글이 숨겨지는 문제 대응)
+- 시연용 공간 "스터디룸 A"(좌석 2) 추가, 보고서 스크린샷은 저장소에 올리지 않음
 
 AI 가 정리한 보고서 자료: `report_materials/checklist.md` 의 F1~F3 절(측정 파일의 실측값만 사용), `issues.md`, `stage_connection.md`, `measurements/*/README.md`.
 
