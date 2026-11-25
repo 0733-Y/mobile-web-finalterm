@@ -41,7 +41,7 @@ venv/Scripts/python measure_input.py --source <본인 영상> --out <결과 폴�
 
 ## 외부 코드 출처
 - `Edge_System/YOLO/` 의 기반: [ultralytics/yolov5](https://github.com/ultralytics/yolov5) 버전 7.0.0 (pyproject.toml), 커밋 `1e7cf74cb64d719b34f7315aa13eab9e32cde672` (2026-11-17). 라이선스 AGPL-3.0.
-- 최초 임포트 커밋(`cbe9ea6`)은 원본 그대로이며, 수정은 이후 커밋에서만 이루어졌다(`detect.py` 수정, `changedetection.py` 등 추가).
+- 최초 임포트 커밋(`215ce63`)은 원본 그대로이며, 수정은 이후 커밋에서만 이루어졌다(`detect.py` 수정, `changedetection.py` 등 추가).
 
 ## Edge 실행
 ```bash
